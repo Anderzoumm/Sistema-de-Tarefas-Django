@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sistema de Tarefas</title>
+    <style>
+        :root {
+            --fundo: #f4f6fb;
+            --card: #ffffff;
+            --texto: #1f2937;
+            --texto-suave: #6b7280;
+            --borda: #e5e7eb;
+            --primaria: #4f46e5;
+            --primaria-escura: #4338ca;
+            --perigo: #dc2626;
+            --perigo-fundo: #fee2e2;
+            --sucesso: #166534;
+            --sucesso-fundo: #dcfce7;
+            --pendente: #92400e;
+            --pendente-fundo: #fef3c7;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 48px 16px;
+            background: var(--fundo);
+            color: var(--texto);
+            font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+        }
+
+        .container {
+            max-width: 560px;
+            margin: 0 auto;
+            background: var(--card);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 10px 30px rgba(31, 41, 55, 0.08);
+        }
+
+        h1 { margin: 0 0 4px; font-size: 1.6rem; }
+        .subtitulo { margin: 0 0 24px; color: var(--texto-suave); font-size: 0.95rem; }
+
+        /* Mensagens */
+        .mensagem {
+            padding: 12px 14px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+        .mensagem.success { background: var(--sucesso-fundo); color: var(--sucesso); }
+        .mensagem.error { background: var(--perigo-fundo); color: var(--perigo); }
+
+        /* Formulário de criação */
+        .form-criar { display: flex; gap: 8px; margin: 20px 0 24px; }
+        .form-criar input {
+            flex: 1;
+            padding: 12px 14px;
+            border: 1px solid var(--borda);
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .form-criar input:focus {
+            border-color: var(--primaria);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+        }
+
+        button {
+            font-family: inherit;
+            font-size: 0.95rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .btn-adicionar {
+            padding: 12px 20px;
+            background: var(--primaria);
+            color: #fff;
+            font-weight: 600;
+        }
+        .btn-adicionar:hover { background: var(--primaria-escura); }
+
+        /* Lista */
+        ul { list-style: none; margin: 0; padding: 0; }
+        li {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 14px 4px;
+            border-bottom: 1px solid var(--borda);
+        }
+        li:last-child { border-bottom: none; }
+
+        .tarefa-info { display: flex; align-items: center; gap: 10px; min-width: 0; }
+        .tarefa-titulo { overflow-wrap: anywhere; }
+
+        .badge {
+            flex-shrink: 0;
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .badge.pendente { background: var(--pendente-fundo); color: var(--pendente); }
+        .badge.concluida { background: var(--sucesso-fundo); color: var(--sucesso); }
+
+        .btn-remover {
+            padding: 6px 12px;
+            background: transparent;
+            color: var(--perigo);
+            border: 1px solid var(--perigo-fundo);
+        }
+        .btn-remover:hover { background: var(--perigo-fundo); }
+
+        .vazio { justify-content: center; color: var(--texto-suave); padding: 28px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Minhas Tarefas</h1>
+        <p class="subtitulo">Organize o que precisa ser feito.</p>
+
+        {% for mensagem in messages %}
+            <div class="mensagem {{ mensagem.tags }}">{{ mensagem }}</div>
+        {% endfor %}
+
+        <form method="post" class="form-criar">
+            {% csrf_token %}
+            <input type="text" name="titulo" placeholder="O que você precisa fazer?" autofocus>
+            <button type="submit" class="btn-adicionar">Adicionar</button>
+        </form>
+
+        <ul>
+            {% for tarefa in tarefas %}
+                <li>
+                    <div class="tarefa-info">
+                        <span class="badge {{ tarefa.status }}">{{ tarefa.get_status_display }}</span>
+                        <span class="tarefa-titulo">{{ tarefa.titulo }}</span>
+                    </div>
+
+                    <form method="post" action="{% url 'remover' tarefa.id %}"
+                          onsubmit="return confirm('Remover esta tarefa?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-remover">Remover</button>
+                    </form>
+                </li>
+            {% empty %}
+                <li class="vazio">Nenhuma tarefa cadastrada.</li>
+            {% endfor %}
+        </ul>
+    </div>
+</body>
+</html>
